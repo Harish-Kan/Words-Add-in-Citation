@@ -36,7 +36,7 @@ const handleAnalyze = async () => {
     const selectedText = range.text;
 
     if (!selectedText || selectedText.trim().length === 0) {
-      console.log("No text selected.");
+      setCitation({ error: "Please select text before analyzing." });
       return;
     }
 
@@ -45,9 +45,7 @@ const handleAnalyze = async () => {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: selectedText,
           document_id: "trustops-handbook-v1",
@@ -57,28 +55,20 @@ const handleAnalyze = async () => {
 
       const data = await response.json();
 
-      // Highlight selected text
       range.font.highlightColor = "#FFFF00";
       await context.sync();
 
       console.log("Citation response:", data);
 
-      // Handle empty or low-confidence responses
-      if (!data || !data.citation_text || data.confidence < 0.5) {
-        setCitation({
-          citation_text: "Unable to generate citation. Try refining selection.",
-          confidence: 0,
-        });
+      // Check for null or low-confidence response
+      if (!data || data.confidence < 0.2) {
+        setCitation({ error: "Unable to generate citation. Try refining selection." });
       } else {
         setCitation(data);
       }
-
     } catch (error) {
       console.error("API request failed:", error);
-      setCitation({
-        citation_text: "Unable to generate citation. Try again later.",
-        confidence: 0,
-      });
+      setCitation({ error: "API request failed. Please try again." });
     }
   });
 };
@@ -91,16 +81,22 @@ const handleAnalyze = async () => {
         Analyze Selection
       </Button>
 
-      {citation && (
-            <div style={{ marginTop: "20px", textAlign: "center" }}>
-              <h3>Citation</h3>
-              <p>{citation.citation_text}</p>
-              <p>Confidence: {citation.confidence}</p>
-              <a href={citation.url} target="_blank">
-                View Source
-              </a>
-            </div>
-          )}
+        {citation && (
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            {citation.error ? (
+              <p>{citation.error}</p>
+            ) : (
+              <>
+                <h3>Citation</h3>
+                <p>{citation.citation_text}</p>
+                <p>Confidence: {citation.confidence}</p>
+                <a href={citation.url} target="_blank">
+                  View Source
+                </a>
+              </>
+            )}
+          </div>
+        )}
 
     </div>
   );
