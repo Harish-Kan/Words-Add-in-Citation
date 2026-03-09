@@ -1,3 +1,8 @@
+#USEAGE OF AI 
+
+https://chatgpt.com/share/69aef0fd-6b14-8004-8631-2f794f9cec17
+
+
 # Build Word add-ins using Office Add-ins Development Kit
 
 Word add-ins are integrations built by third parties into Word by using [Word JavaScript API](https://learn.microsoft.com/en-us/office/dev/add-ins/reference/overview/word-add-ins-reference-overview) and [Office Platform capabilities](https://learn.microsoft.com/en-us/office/dev/add-ins/overview/office-add-ins).
