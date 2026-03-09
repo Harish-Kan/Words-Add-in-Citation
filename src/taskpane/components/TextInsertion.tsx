@@ -43,37 +43,43 @@ const handleAnalyze = async () => {
     console.log("Selected text:", selectedText);
 
     try {
-
-      const response = await fetch(
-        "/api/analyze",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            text: selectedText,
-            document_id: "trustops-handbook-v1",
-            user_id: "candidate_1"
-          })
-        }
-      );
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: selectedText,
+          document_id: "trustops-handbook-v1",
+          user_id: "candidate_1",
+        }),
+      });
 
       const data = await response.json();
 
+      // Highlight selected text
       range.font.highlightColor = "#FFFF00";
       await context.sync();
 
       console.log("Citation response:", data);
 
-      setCitation(data);
+      // Handle empty or low-confidence responses
+      if (!data || !data.citation_text || data.confidence < 0.5) {
+        setCitation({
+          citation_text: "Unable to generate citation. Try refining selection.",
+          confidence: 0,
+        });
+      } else {
+        setCitation(data);
+      }
 
     } catch (error) {
-
       console.error("API request failed:", error);
-
+      setCitation({
+        citation_text: "Unable to generate citation. Try again later.",
+        confidence: 0,
+      });
     }
-
   });
 };
 
