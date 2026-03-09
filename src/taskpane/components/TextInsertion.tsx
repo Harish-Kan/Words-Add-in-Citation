@@ -1,12 +1,10 @@
-import * as React from "react";
+  import * as React from "react";
 import { useState } from "react";
-import { Button, Field, Textarea, tokens, makeStyles } from "@fluentui/react-components";
+import { Button, Field, tokens, makeStyles } from "@fluentui/react-components";
 
-/* global HTMLTextAreaElement */
+/* global Word */
 
-interface TextInsertionProps {
-  insertText: (text: string) => void;
-}
+
 
 const useStyles = makeStyles({
   instructions: {
@@ -19,37 +17,85 @@ const useStyles = makeStyles({
     flexDirection: "column",
     alignItems: "center",
   },
-  textAreaField: {
-    marginLeft: "20px",
-    marginTop: "30px",
-    marginBottom: "20px",
-    marginRight: "20px",
-    maxWidth: "50%",
-  },
+
 });
 
-const TextInsertion: React.FC<TextInsertionProps> = (props: TextInsertionProps) => {
-  const [text, setText] = useState<string>("Some text.");
-
-  const handleTextInsertion = async () => {
-    await props.insertText(text);
-  };
-
-  const handleTextChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(event.target.value);
-  };
+const TextInsertion: React.FC = () => {
 
   const styles = useStyles();
 
+const [citation, setCitation] = useState<any>(null);
+
+const handleAnalyze = async () => {
+  await Word.run(async (context) => {
+    const range = context.document.getSelection();
+    range.load("text");
+
+    await context.sync();
+
+    const selectedText = range.text;
+
+    if (!selectedText || selectedText.trim().length === 0) {
+      console.log("No text selected.");
+      return;
+    }
+
+    console.log("Selected text:", selectedText);
+
+    try {
+
+      const response = await fetch(
+        "/api/analyze",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text: selectedText,
+            document_id: "trustops-handbook-v1",
+            user_id: "candidate_1"
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      range.font.highlightColor = "#FFFF00";
+      await context.sync();
+
+      console.log("Citation response:", data);
+
+      setCitation(data);
+
+    } catch (error) {
+
+      console.error("API request failed:", error);
+
+    }
+
+  });
+};
+
   return (
     <div className={styles.textPromptAndInsertion}>
-      <Field className={styles.textAreaField} size="large" label="Enter text to be inserted into the document.">
-        <Textarea size="large" value={text} onChange={handleTextChange} />
-      </Field>
-      <Field className={styles.instructions}>Click the button to insert text.</Field>
-      <Button appearance="primary" disabled={false} size="large" onClick={handleTextInsertion}>
-        Insert text
+
+      <Field className={styles.instructions}>Highlight the text and Click to anaylze .</Field>
+      <Button appearance="primary" size="large" onClick={handleAnalyze}>
+        Analyze Selection
       </Button>
+
+      {citation && (
+            <div style={{ marginTop: "20px", textAlign: "center" }}>
+              <h3>Citation</h3>
+              <p>{citation.citation_text}</p>
+              <p>Confidence: {citation.confidence}</p>
+              <a href={citation.url} target="_blank">
+                View Source
+              </a>
+            </div>
+          )}
+
     </div>
   );
 };

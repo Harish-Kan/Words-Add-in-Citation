@@ -39,7 +39,7 @@ const App: React.FC<AppProps> = (props: AppProps) => {
     <div className={styles.root}>
       <Header logo="assets/logo.jpg" title={props.title} message="QSC Take Home" />
       <HeroList message="Discover what this add-in can do for you today!" items={listItems} />
-      <TextInsertion insertText={insertText} />
+      <TextInsertion />
     </div>
   );
 };

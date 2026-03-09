@@ -96,13 +96,30 @@ module.exports = async (env, options) => {
     ],
     devServer: {
       hot: true,
+
       headers: {
         "Access-Control-Allow-Origin": "*",
       },
+
+      proxy: [
+        {
+          context: ["/api"],
+          target: "https://citation-service-759083008215.us-east1.run.app",
+          changeOrigin: true,
+          secure: true,
+          pathRewrite: {
+            "^/api": "",
+          },
+        },
+      ],
+
       server: {
         type: "https",
-        options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
+        options: env.WEBPACK_BUILD || options.https !== undefined
+          ? options.https
+          : await getHttpsOptions(),
       },
+
       port: process.env.npm_package_config_dev_server_port || 3000,
     },
   };
